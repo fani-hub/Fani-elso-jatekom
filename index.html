@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fani Dinós Játéka</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            margin-top: 30px;
+        }
+        #gameCanvas {
+            background-color: #fff;
+            border-bottom: 3px solid #535353;
+            display: block;
+            margin: 0 auto;
+        }
+        h1 { color: #535353; }
+        p { font-size: 18px; color: #777; }
+    </style>
+</head>
+<body>
+
+    <h1>Fani Dinós Játéka 🦖</h1>
+    <p>Nyomd meg a <strong>SZÓKÖZ (Space)</strong> gombot az ugráshoz!</p>
+    <canvas id="gameCanvas" width="600" height="200"></canvas>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        // Játék változók
+        let dinoY = 160;
+        let dinoVeloY = 0;
+        let isJumping = false;
+        const gravity = 0.6;
+
+        let obstacleX = 600;
+        let obstacleSpeed = 5;
+        let score = 0;
+        let isGameOver = false;
+
+        // Irányítás: Szóköz megnyomására ugrik
+        document.addEventListener("keydown", function(event) {
+            if (event.code === "Space") {
+                if (isGameOver) {
+                    // Újraindítás, ha vége a játéknak
+                    dinoY = 160;
+                    dinoVeloY = 0;
+                    obstacleX = 600;
+                    obstacleSpeed = 5;
+                    score = 0;
+                    isGameOver = false;
+                    update();
+                } else if (!isJumping) {
+                    dinoVeloY = -10;
+                    isJumping = true;
+                }
+            }
+        });
+
+        function update() {
+            if (isGameOver) return;
+
+            // Dínó fizika (gravitáció és ugrás)
+            dinoVeloY += gravity;
+            dinoY += dinoVeloY;
+
+            if (dinoY >= 160) {
+                dinoY = 160;
+                isJumping = false;
+            }
+
+            // Kaktusz mozgatása
+            obstacleX -= obstacleSpeed;
+            if (obstacleX < -20) {
+                obstacleX = 600;
+                score++;
+                // Nehezedik a játék, ahogy gyűlnek a pontok
+                if (obstacleSpeed < 12) obstacleSpeed += 0.5; 
+            }
+
+            // Ütközés figyelése (Dínó mérete: 20x30, Kaktusz: 20x30)
+            if (obstacleX < 50 + 20 && obstacleX + 20 > 50 && dinoY + 30 > 160) {
+                isGameOver = true;
+            }
+
+            // Rajzolás tisztítása
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Dínó kirajzolása (Zöld)
+            ctx.fillStyle = "#228B22";
+            ctx.fillRect(50, dinoY, 20, 30);
+
+            // Kaktusz kirajzolása (Piros)
+            ctx.fillStyle = "#FF4500";
+            ctx.fillRect(obstacleX, 160, 20, 30);
+
+            // Pontszám kiírása
+            ctx.fillStyle = "#535353";
+            ctx.font = "20px Arial";
+            ctx.fillText("Pontszám: " + score, 470, 30);
+
+            if (isGameOver) {
+                ctx.fillStyle = "#535353";
+                ctx.font = "30px Arial";
+                ctx.fillText("JÁTÉK VÉGE", 220, 100);
+                ctx.font = "16px Arial";
+                ctx.fillText("Nyomj Szóközt az újraindításhoz!", 190, 130);
+            } else {
+                requestAnimationFrame(update);
+            }
+        }
+
+        // Játék indítása
+        update();
+    </script>
+
+</body>
+</html>
